@@ -63,11 +63,11 @@ public Soup.URI proxy_uri;
 public string proxy_username;
 public string proxy_password;
 
-public static Soup.Session create_session ()
+public static Soup.SessionAsync create_session ()
 {
-    Soup.Session session;
+    Soup.SessionAsync session;
     if (use_proxy) {
-        session = new Soup.Session.with_options (
+        session = new Soup.SessionAsync.with_options (
                 Soup.SESSION_USER_AGENT, USER_AGENT,
                 Soup.SESSION_PROXY_URI, proxy_uri, null);
 
@@ -80,7 +80,7 @@ public static Soup.Session create_session ()
             }
         });
     } else {
-        session = new Soup.Session.with_options (
+        session = new Soup.SessionAsync.with_options (
                 Soup.SESSION_USER_AGENT, USER_AGENT, null);
     }
     session.timeout = 10; /* 10 seconds timeout, until we give up and show an error message */
@@ -533,7 +533,7 @@ class ArtePlugin : Peas.Activatable, PeasGtk.Configurable, Peas.ExtensionBase
             return;
         }
 
-        t.add_to_playlist_and_play (stream_url, title);
+        t.add_to_playlist_and_play (stream_url, title, false);
     }
 
     private void callback_refresh_rss_feed ()
