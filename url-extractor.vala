@@ -100,9 +100,20 @@ public class RTMPStreamUrlExtractor : IndirectUrlExtractor, UrlExtractor
             throw new ExtractionError.EXTRACTION_FAILED ("Unable to extract the video ID");
         }
 
-        /* JSON uri */
-        var json_uri = "https://api.arte.tv/api/player/v1/config/" + video_id + "?platform=ARTEPLUS7";
-        debug ("Constructed JSON URI:\t'%s'", json_uri);
+        string json_uri;
+        /* Special case for Arte Journal which, as of 2016-02-22,
+           still requires the old URL extraction method. */
+        if (video_id.has_suffix ("/AJT")) {
+            json_uri = extract_string_from_page (page_url,
+                                                 "arte_vp_url=['\"](https?://.*.json)['\"].*>");
+            debug ("Extracted JSON URI:\t'%s'", json_uri);
+            if (json_uri == null) {
+                throw new ExtractionError.EXTRACTION_FAILED ("Video URL Extraction Error");
+            }
+        } else {
+            json_uri = "https://api.arte.tv/api/player/v1/config/" + video_id + "?platform=ARTEPLUS7";
+            debug ("Constructed JSON URI:\t'%s'", json_uri);
+        }
 
         /* download and parse the main JSON file */
         var message = new Soup.Message ("GET", json_uri);
