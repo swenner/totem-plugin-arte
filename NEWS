@@ -1,3 +1,10 @@
+2016 February 28th - Totem Arte Plugin 3.2.4
+
+Changes since 3.2.3:
+ * Fixed stream URL extraction
+ * Added a dynamic fallback to another stream quality if a certain quality is
+   unavailable.
+
 2015 April 23th - Totem Arte Plugin 3.2.3
 
 Changes since 3.2.2:
