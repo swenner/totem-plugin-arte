@@ -130,39 +130,46 @@ public class RTMPStreamUrlExtractor : IndirectUrlExtractor, UrlExtractor
             var root_object = parser.get_root ().get_object ();
             var player_object = root_object.get_object_member ("videoJsonPlayer");
             var streams_object = player_object.get_object_member ("VSR");
-            Json.Object video_object;
+            Json.Object video_object = null;
 
             var is_rtmp = false;
 
+            // sorted from the best to worst
+            // LQ still exist for the Arte Journal
+            string[] quality_options = {"SQ_1", "EQ_1", "HQ_1", "MQ_1", "LQ_1"};
+
+            int quality_index = 2;
             switch (q) {
                 case VideoQuality.LOW:
-                    video_object = streams_object.get_object_member ("HTTP_MP4_MQ_1");
-                    if (video_object == null) {
-                        video_object = streams_object.get_object_member ("RTMP_MQ_1");
-                        is_rtmp = true;
-                    }
+                    quality_index = 3;
                     break;
                 case VideoQuality.HIGH:
-                    video_object = streams_object.get_object_member ("HTTP_MP4_EQ_1");
-                    if (video_object == null) {
-                        video_object = streams_object.get_object_member ("RTMP_EQ_1");
-                        is_rtmp = true;
-                    }
+                    quality_index = 1;
                     break;
                 case VideoQuality.HD:
-                    video_object = streams_object.get_object_member ("HTTP_MP4_SQ_1");
-                    if (video_object == null) {
-                        video_object = streams_object.get_object_member ("RTMP_SQ_1");
-                        is_rtmp = true;
-                    }
+                    quality_index = 0;
                     break;
                 default: // MEDIUM is the default
-                    video_object = streams_object.get_object_member ("HTTP_MP4_HQ_1");
-                    if (video_object == null) {
-                        video_object = streams_object.get_object_member ("RTMP_HQ_1");
-                        is_rtmp = true;
-                    }
+                    quality_index = 2;
                     break;
+            }
+
+            // try all options starting from the desired one
+            for (int i = 0; i < quality_options.length; i++) {
+                int index = (quality_index + i) % quality_options.length;
+                video_object = streams_object.get_object_member ("HTTP_MP4_" + quality_options[index]);
+                if (video_object != null) {
+                    break;
+                }
+                video_object = streams_object.get_object_member ("RTMP_" + quality_options[index]);
+                if (video_object != null) {
+                    is_rtmp = true;
+                    break;
+                }
+            }
+
+            if (video_object == null) {
+                throw new ExtractionError.EXTRACTION_FAILED ("Video URL Extraction Error");
             }
 
             if (!is_rtmp) {
